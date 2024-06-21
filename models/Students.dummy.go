@@ -6,7 +6,7 @@ type Student struct {
 	ID      primitive.ObjectID `bson:"_id,omitempty"`
 	Name    string             `bson:"name"`
 	Age     int                `bson:"age"`
-	Email   string             `bson:"email,unique,"`
+	Email   string             `bson:"email,unique"`
 	PhoneNo string             `bson:"phoneNo"`
 	Others  string             `bson:"others"`
 }

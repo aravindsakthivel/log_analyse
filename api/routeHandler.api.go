@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SUserDetailPR struct {
@@ -49,7 +50,7 @@ func (sr *SRoutes) createUserDummy(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	var filesUploaded []string = []string{"info"}
+	var filesUploaded []primitive.ObjectID = []primitive.ObjectID{}
 	user := controller.SUserInfo{
 		Name:          "John Doe",
 		UserEmail:     "john@mail.com",
@@ -86,7 +87,7 @@ func (sr SRoutes) createUser(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Body ", user)
 
-	filesUploaded := []string{}
+	var filesUploaded []primitive.ObjectID = []primitive.ObjectID{}
 	buildUser := controller.SUserInfo{
 		Name:          user.Name,
 		UserEmail:     user.UserEmail,
@@ -111,9 +112,17 @@ func (sr *SRoutes) uploadFile(w http.ResponseWriter, r *http.Request) {
 
 	userCtrl, errDB := sr.dbCtrl.Users()
 
+	fileCtrl, fileErr := sr.dbCtrl.Files()
+
 	if errDB != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(errDB.Error()))
+		return
+	}
+
+	if fileErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fileErr.Error()))
 		return
 	}
 
@@ -178,7 +187,15 @@ func (sr *SRoutes) uploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errPF := userCtrl.PushFileName("aravind@mail.com", filePath)
+	fileId, setFileErr := fileCtrl.SetFiles(filePath, header.Filename, mail) // TODO : test this function
+
+	if setFileErr != nil {
+		log.Println("Error setting file ", err)
+		http.Error(w, "Error setting file ", http.StatusInternalServerError)
+		return
+	}
+
+	errPF := userCtrl.PushFileName(mail, fileId)
 
 	if errPF != nil {
 		log.Println("Error saving the file path ", err)

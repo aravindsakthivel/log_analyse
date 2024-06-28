@@ -10,3 +10,12 @@ func (c SDBCtrl) Users() (*SUsersCL, error) {
 	}
 	return cl, nil
 }
+
+func (f SDBCtrl) Files() (*SFilesCL, error) {
+	cl := &SFilesCL{}
+	err := cl.setCollection()
+	if err != nil {
+		return nil, err
+	}
+	return cl, nil
+}

@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type SUserInfo struct {
 	Name          string
 	UserEmail     string
-	FilesUploaded []string
+	FilesUploaded []primitive.ObjectID
 }
 
 type IUsersCL interface {
@@ -37,7 +38,7 @@ func (s *SUsersCL) setCollection() error {
 	cl, err := DB.ConnectCL("users")
 
 	if err != nil {
-		log.Print("Error connecting to collection: ", err)
+		log.Print("Error connecting to user collection: ", err)
 		return err
 	}
 	s.Collection = cl
@@ -79,7 +80,7 @@ func (s *SUsersCL) CreateUser(user SUserInfo) error {
 	return nil
 }
 
-func (s *SUsersCL) PushFileName(email string, file string) error {
+func (s *SUsersCL) PushFileName(email string, file primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()

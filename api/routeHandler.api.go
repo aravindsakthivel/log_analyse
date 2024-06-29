@@ -195,14 +195,50 @@ func (sr *SRoutes) uploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Print("Uploaded file ID ", fileId)
+
 	errPF := userCtrl.PushFileName(mail, fileId)
 
 	if errPF != nil {
-		log.Println("Error saving the file path ", err)
+		log.Println("Error saving the file path ", errPF)
 		http.Error(w, "Error saving the file path ", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("File uploaded successfully"))
+}
+
+func (sr *SRoutes) findUnCompressedFiles(w http.ResponseWriter, r *http.Request) {
+	fileCtrl, fileDBErr := sr.dbCtrl.Files()
+
+	if fileDBErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fileDBErr.Error()))
+		return
+	}
+	filesExists, files, err := fileCtrl.GetUnCompressedFile()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if !filesExists {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("No un compressed files found"))
+		return
+	}
+
+	filesJSON, err := json.Marshal(files)
+	if err != nil {
+		log.Println("Error marshalling files: ", err)
+		http.Error(w, "Error processing files", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	var response []byte = []byte(filesJSON)
+	w.Write(response)
 }

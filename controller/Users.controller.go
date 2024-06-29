@@ -94,8 +94,8 @@ func (s *SUsersCL) PushFileName(email string, file primitive.ObjectID) error {
 		return err
 	}
 
-	if result.UserEmail == email {
-		return fmt.Errorf("user with email %s already exists", email)
+	if result.UserEmail != email {
+		return fmt.Errorf("user with email %s doesn't exists", email)
 	}
 
 	filter := bson.D{{Key: "email", Value: email}}

@@ -17,4 +17,5 @@ func (r *SRouter) RoutesInit(router *chi.Mux) {
 	router.Get("/users/dummy", routes.createUserDummy)
 	router.Post("/upload", routes.uploadFile)
 	router.Post("/createUser", routes.createUser)
+	router.Get("/unCompressedFiles", routes.findUnCompressedFiles)
 }

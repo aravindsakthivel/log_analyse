@@ -84,9 +84,9 @@ func (f *SFilesCL) GetUnCompressedFile() (bool, []string, error) {
 
 	defer cancel()
 
-	filter := bson.D{{Key: "Compressed", Value: false}}
+	filter := bson.D{{Key: "compressed", Value: false}}
 
-	projection := bson.D{{Key: "FilePath", Value: 1}}
+	projection := bson.D{{Key: "filePath", Value: 1}}
 
 	cursor, err := f.Collection.Find(ctx, filter, options.Find().SetProjection(projection).SetLimit(3))
 
@@ -96,7 +96,7 @@ func (f *SFilesCL) GetUnCompressedFile() (bool, []string, error) {
 	}
 
 	var results []struct {
-		FilePath string `bson:"FilePath"`
+		FilePath string `bson:"filePath"`
 	}
 
 	crErr := cursor.All(ctx, &results)
@@ -105,6 +105,8 @@ func (f *SFilesCL) GetUnCompressedFile() (bool, []string, error) {
 		log.Printf("Error decoding unCompressed files %s ", err)
 		return false, []string{}, err
 	}
+
+	log.Print("Response from DB ", results)
 
 	var filePaths []string
 

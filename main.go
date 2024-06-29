@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"log_analyse/DB"
+	"log_analyse/api"
 	"net/http"
 	"os"
 
@@ -34,20 +35,9 @@ func main() {
 		Handler: router,
 	}
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, World!"))
-	})
+	routeHandler := api.SRouter{}
 
-	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		var health bool = dbProp.Health()
-
-		if !health {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Database is not healthy"))
-			return
-		}
-		w.Write([]byte("Database is healthy"))
-	})
+	routeHandler.RoutesInit(router)
 
 	log.Printf("Server started on port %s", port)
 

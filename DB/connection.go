@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	envPkg "github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +14,7 @@ import (
 )
 
 var DBClient *mongo.Client = nil // Database client
+var DBWriteClient *mongo.Client = nil
 
 type SDB struct{}
 
@@ -21,7 +23,10 @@ func (db *SDB) Init() error {
 
 	var mongoUrl string = os.Getenv("DB_URL")
 
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(mongoUrl))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoUrl))
 
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB: ", err)
@@ -30,7 +35,7 @@ func (db *SDB) Init() error {
 
 	DBClient = client
 
-	pong := client.Ping(context.Background(), readpref.Primary())
+	pong := client.Ping(ctx, readpref.Primary())
 
 	if pong != nil {
 		log.Fatal("Error pinging MongoDB: ", err)
@@ -45,7 +50,11 @@ func (db *SDB) Health() bool {
 	if DBClient == nil {
 		return false
 	}
-	err := DBClient.Ping(context.Background(), readpref.Primary())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := DBClient.Ping(ctx, readpref.Primary())
 	return err == nil
 }
 
@@ -66,6 +75,7 @@ func ConnectCL(collection string) (*mongo.Collection, error) {
 	if DBClient == nil {
 		log.Fatal("Database connection not initialized")
 	}
+
 	return DBClient.Database(DB_NAME).Collection(collection), nil
 }
 
